@@ -7,7 +7,7 @@ use proj4php\Proj;
 use proj4php\Point;
 
 // First lets create a connection to the DB:
-$GLOBALS['db'] = new mysqli($dbHost, $dbUser, $dbPassword, $database); // VERIFIER
+$GLOBALS['db'] = new mysqli($dbHost, $dbUser, $dbPassword, $database); 
 
 if ($GLOBALS['db']->connect_errno) {
     printf("Connection failure: %s\n", $GLOBALS['db']->connect_error);
@@ -56,29 +56,6 @@ else {
 }
 
 // Definitions of functions
-
-function convertLambert93ToWGS84Coord($xL93,$yL93)
-{
-	// Initialise Proj4
-	$proj4 = new Proj4php();
-
-	// Create two different projections.
-	$projL93    = new Proj('EPSG:2154', $proj4);
-	$projWGS84  = new Proj('EPSG:4326', $proj4);
-
-	// Create a point.
-	$pointSrc = new Point($xL93, $yL93, $projL93);
-	echo "Source: " . $pointSrc->toShortString() . " in L93 \n";
-
-	// Transform the point between datums.
-	$pointDest = $proj4->transform($projWGS84, $pointSrc);
-	echo "Conversion: " . $pointDest->toShortString() . " in WGS84\n";
-
-	list($x,$y)=explode(' ', $pointDest->toShortString());
-	$result[]=$x;
-	$result[]=$y;
-	return $result;
-}
 
 function convertWGS84ToLambert93($xWGS84,$yWGS84)
 {	
