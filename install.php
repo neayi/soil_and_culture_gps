@@ -84,10 +84,9 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 			// Insert the values into the table
 
 			foreach($rows as $row) {
-
+				
 				if($row<>$rows[0]){
-					$row=substr($row, 1);
-					$row=substr($row,-1);
+					$row=substr($row, 1,-1);
 					$row=str_replace("\\","",$row);
 					$row=str_replace("\"","",$row);
 				}
@@ -104,11 +103,9 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					}
 				}
 
-				var_dump($rowArray[$row]);
-				/*if($rowArray[$row]<>$firstRow){
+				if($rowArray[$row]<>$firstRow){
 					for($c=0;$c<$nbColumns;$c++){
-						$fieldValue=$rowArray[$row][$c];
-						//$fieldValue = mysqli_real_escape_string($GLOBALS['db_conn'],$rowArray[$row][$c]);
+						$fieldValue = mysqli_real_escape_string($GLOBALS['db_conn'],$rowArray[$row][$c]);
 						if(!is_null($fieldValue)){
 							if($c==$nbColumns-1){
 								$insertQuery=$insertQuery."'".$fieldValue."')";
@@ -117,8 +114,8 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 							}
 						}
 					}
-				}*/
-				//mysqli_query($GLOBALS['db_conn'],$insertQuery);
+				}
+				mysqli_query($GLOBALS['db_conn'],$insertQuery);
 
 			}
 			break;
