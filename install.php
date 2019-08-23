@@ -103,20 +103,35 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					}
 				}
 
+				$fieldValue[$row]=array();
+
 				if($rowArray[$row]<>$firstRow){
 					for($c=0;$c<$nbColumns;$c++){
-						$fieldValue = mysqli_real_escape_string($GLOBALS['db_conn'],$rowArray[$row][$c]);
+						$fieldValue[$row][$c] = mysqli_real_escape_string($GLOBALS['db_conn'],$rowArray[$row][$c]);
 						if(!is_null($fieldValue)){
 							if($c==$nbColumns-1){
-								$insertQuery=$insertQuery."'".$fieldValue."')";
+								$insertQuery=$insertQuery."'".$fieldValue[$row][$c]."')";
 							}else{
-								$insertQuery=$insertQuery."'".$fieldValue."',";
+								$insertQuery=$insertQuery."'".$fieldValue[$row][$c]."',";
 							}
 						}
 					}
 				}
-				mysqli_query($GLOBALS['db_conn'],$insertQuery);
 
+				if($rowArray[$row]<>$firstRow){
+					$checkExistsQuery="SELECT * FROM $tablename WHERE ";
+					for($c=0;$c<$nbColumns;$c++){
+						if($c==$nbColumns-1){
+							$checkExistsQuery=$checkExistsQuery.$firstRow[$c]."= \"".$fieldValue[$row][$c]."\"";
+						}else{
+							$checkExistsQuery=$checkExistsQuery.$firstRow[$c]."= \"".$fieldValue[$row][$c]."\" AND ";
+						}
+					}
+
+					$result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery);
+					if(mysqli_num_rows($result)==0)
+						mysqli_query($GLOBALS['db_conn'],$insertQuery);
+				}
 			}
 			break;
 
