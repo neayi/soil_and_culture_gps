@@ -42,6 +42,7 @@ mb_internal_encoding("UTF-8");
 
 foreach ($GLOBALS['external_data'] as $externaldata)
 {
+	$localfilenameBIS=$externaldata['localfilename'];
 	$localfilename = __DIR__ . '/temp/' . $externaldata['localfilename'];
 	
 	echo "Downloading " . $externaldata['url'] . " to $localfilename\n";
@@ -70,16 +71,62 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 			$rows=file($localfilename);
 			$firstRow=explode(';',$rows[0]);
 			$nbColumns=count($firstRow);
-			$createQuery="CREATE TABLE IF NOT EXISTS $tablename (";
 
-			for($c=0;$c<$nbColumns;$c++){
-				if($c==$nbColumns-1){
-					$createQuery=$createQuery.$firstRow[$c]." VARCHAR(100))"; // LE TYPE EST A ADAPTER ....
-				}else{
-					$createQuery=$createQuery.$firstRow[$c]." VARCHAR(100),"; // LE TYPE EST A ADAPTER ....				
-				}
+			switch($localfilenameBIS){
+				case $GLOBALS['external_data']['urlSMU']['localfilename']:
+					$createQuery="CREATE TABLE IF NOT EXISTS $tablename (
+					  smu varchar(24) DEFAULT NULL,
+					  nb_polys varchar(10) DEFAULT NULL,
+					  area varchar(10) DEFAULT NULL
+					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					mysqli_query($GLOBALS['db_conn'],$createQuery);
+					break;
+				case $GLOBALS['external_data']['urlSTU']['localfilename']:
+					$createQuery="CREATE TABLE IF NOT EXISTS $tablename (
+					  stu int(7) NOT NULL,
+					  nb_polys int(3) DEFAULT NULL,
+					  nb_smu int(1) DEFAULT NULL,
+					  area varchar(13) DEFAULT NULL,
+					  soil varchar(3) DEFAULT NULL,
+					  soil90 varchar(3) DEFAULT NULL,
+					  text1 int(1) DEFAULT NULL,
+					  text2 int(1) DEFAULT NULL,
+					  slope1 int(1) DEFAULT NULL,
+					  slope2 int(1) DEFAULT NULL,
+					  aglim1 int(2) DEFAULT NULL,
+					  aglim2 int(2) DEFAULT NULL,
+					  mat1 varchar(3) DEFAULT NULL,
+					  mat2 varchar(3) DEFAULT NULL,
+					  zmin int(4) DEFAULT NULL,
+					  zmax int(4) DEFAULT NULL,
+					  use1 int(2) DEFAULT NULL,
+					  use2 int(2) DEFAULT NULL,
+					  dt int(1) DEFAULT NULL,
+					  td1 int(1) DEFAULT NULL,
+					  td2 int(1) DEFAULT NULL,
+					  roo int(1) DEFAULT NULL,
+					  il int(1) DEFAULT NULL,
+					  wr int(1) DEFAULT NULL,
+					  wm1 int(1) DEFAULT NULL,
+					  wm2 int(1) DEFAULT NULL,
+					  wm3 int(1) DEFAULT NULL,
+					  cfl varchar(1) DEFAULT NULL
+					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					mysqli_query($GLOBALS['db_conn'],$createQuery);
+					break;
+				case $GLOBALS['external_data']['urlSTUORG']['localfilename']:
+					$createQuery="CREATE TABLE stuorg (
+					  smu int(7) DEFAULT NULL,
+					  stu int(7) NOT NULL,
+					  pcarea int(3) DEFAULT NULL
+					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					mysqli_query($GLOBALS['db_conn'],$createQuery);
+					break; 
+				default:
+					echo "Ne rentre pas dans le switch...\n";
+					break;
+
 			}
-			mysqli_query($GLOBALS['db_conn'],$createQuery);
 			
 			// Insert the values into the table
 
@@ -128,9 +175,10 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 						}
 					}
 
-					$result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery);
-					if(mysqli_num_rows($result)==0)
-						mysqli_query($GLOBALS['db_conn'],$insertQuery);
+					if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
+						if(mysqli_num_rows($result)==0)
+							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+					}
 				}
 			}
 			break;
