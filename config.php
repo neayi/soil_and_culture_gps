@@ -12,6 +12,7 @@ $GLOBALS['external_data']['urlSMU'] = array('url' => "https://data.inra.fr/api/a
 $GLOBALS['external_data']['urlSTU'] = array('url' => "https://data.inra.fr/api/access/datafile/8794?format=tab&gbrecs=true", 'localfilename' => 'stu.tab');
 $GLOBALS['external_data']['urlSTUORG'] = array('url' => "https://data.inra.fr/api/access/datafile/8795?format=tab&gbrecs=true", 'localfilename' => 'stuorg.tab');
 
+$GLOBALS['CSVtables']="cultures";
 // Data tables for Crops codification : main crops and catch crops (cultures principales et cultures derobees)
 $GLOBALS['external_data']['urlCodificationMainCrops'] = array('url' => "https://www.data.gouv.fr/fr/datasets/r/18658e27-e7e5-4dee-a3c8-ee2f9c840f8c",'localfilename'=>'maincrops.csv');
 $GLOBALS['external_data']['urlCodificationCatchCrops'] = array('url' => "https://www.data.gouv.fr/fr/datasets/r/939387de-d184-43d9-b88d-5bb3a34db6db",'localfilename'=>'catchcrops.csv');

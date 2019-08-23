@@ -37,7 +37,10 @@ if (!$GLOBALS['db_conn']->set_charset("utf8"))
 $GLOBALS['db_conn']->query("SET NAMES utf8 COLLATE utf8mb4_unicode_ci");
 mb_internal_encoding("UTF-8");
 
-
+//
+//
+//
+//
 // Download the tables that need to be loaded in our DB and put them in the temp directory
 
 foreach ($GLOBALS['external_data'] as $externaldata)
@@ -185,8 +188,55 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 
 		case 'csv':
 			echo "Loading $tablename to the database...\n";
-			//
-			// fusionner les 2 fichiers cultures en 1 table
+
+			$tableCSV=$GLOBALS['CSVtables'];
+			// Open the file for reading
+			if (($h = fopen($localfilename, "r")) !== FALSE) 
+			{
+			  	while (($data[] = fgetcsv($h, 1000, ";")) !== FALSE);
+
+				if($localfilenameBIS==$GLOBALS['external_data']['urlCodificationMainCrops']['localfilename']){
+					$createQuery="CREATE TABLE IF NOT EXISTS $tableCSV(
+						Code varchar(3) DEFAULT NULL,
+						  Label varchar(136) DEFAULT NULL,
+						  Code_groupe int(2) DEFAULT NULL,
+						  Label_groupe varchar(37) DEFAULT NULL
+						) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					mysqli_query($GLOBALS['db_conn'],$createQuery);
+				
+					foreach ($data as $row) {
+						$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
+						if($row<>$data[0]||$row<>end($data)){
+							for($c=0;$c<4;$c++){
+								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],$row[$c]);
+								if($c==3){
+									$insertQuery=$insertQuery.$fieldValue.")";
+								}else{
+									$insertQuery=$insertQuery.$fieldValue.",";
+								}
+							}
+							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+						}	
+					}
+				}
+
+				if($localfilenameBIS==$GLOBALS['external_data']['urlCodificationMainCrops']['localfilename']){
+					foreach ($data as $row) {
+						if($row<>$data[0]){
+							$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
+							for($c=0;$c<2;$c++){
+								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],$row[$c]);
+								$insertQuery=$insertQuery.$fieldValue.",";
+							}
+							$insertQuery=$insertQuery."null,null)";
+							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+						}
+					}
+				}
+
+			  	fclose($h);
+			}
+
 			break;
 
 		default:
