@@ -170,17 +170,29 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 
 				if($rowArray[$row]<>$firstRow){
 					$checkExistsQuery="SELECT * FROM $tablename WHERE ";
-					for($c=0;$c<$nbColumns;$c++){
-						if($c==$nbColumns-1){
-							$checkExistsQuery=$checkExistsQuery.$firstRow[$c]."= \"".$fieldValue[$row][$c]."\"";
-						}else{
-							$checkExistsQuery=$checkExistsQuery.$firstRow[$c]."= \"".$fieldValue[$row][$c]."\" AND ";
-						}
+					switch ($localfilenameBIS) {
+						case $GLOBALS['external_data']['urlSMU']['localfilename']:
+							$checkExistsQuery=$checkExistsQuery."smu = ".$fieldValue[$row][0];
+							break;
+						
+						case $GLOBALS['external_data']['urlSTU']['localfilename']:
+							$checkExistsQuery=$checkExistsQuery."stu = ".$fieldValue[$row][0];
+							break;
+
+
+						case $GLOBALS['external_data']['urlSTUORG']['localfilename']:
+							$checkExistsQuery=$checkExistsQuery."smu = ".$fieldValue[$row][0]." AND stu = ".$fieldValue[$row][1];
+							break;
+
+						default:
+							break;
 					}
 
 					if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-						if(mysqli_num_rows($result)==0)
+						if(mysqli_num_rows($result)==0){
 							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+						}
+
 					}
 				}
 			}
