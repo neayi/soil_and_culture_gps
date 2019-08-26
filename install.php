@@ -82,17 +82,14 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					$structureQuery="ALTER TABLE $tablename
 					  ADD PRIMARY KEY (soil_id),
 					  ADD KEY smu (smu);";
-					  mysqli_query($GLOBALS['db_conn'],$structureQuery);
 					  if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
 					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
-
 				}
 				//elseif($localfilenameBIS==$GLOBALS['external_data']['urlRPG2017']['localfilename']){
 				//	$structureQuery="ALTER TABLE $tablename 
 						//ADD PRIMARY KEY (id_parcel), ADD SPATIAL KEY SHAPE (SHAPE);";
-					//mysqli_query($GLOBALS['db_conn'],$structureQuery);
 					//if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
-					//		printf("Error: %s\n", mysqli_error($link));
+					//		printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 				//}
 
 			}else
@@ -112,7 +109,6 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					  nb_polys varchar(10) DEFAULT NULL,
 					  area varchar(10) DEFAULT NULL
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-					mysqli_query($GLOBALS['db_conn'],$createQuery);
 					if(!mysqli_query($GLOBALS['db_conn'],$createQuery))
 					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break;
@@ -147,7 +143,6 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					  wm3 int(1) DEFAULT NULL,
 					  cfl varchar(1) DEFAULT NULL
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-					mysqli_query($GLOBALS['db_conn'],$createQuery);
 					if(!mysqli_query($GLOBALS['db_conn'],$createQuery))
 					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break;
@@ -157,7 +152,6 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					  stu int(7) NOT NULL,
 					  pcarea int(3) DEFAULT NULL
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-					mysqli_query($GLOBALS['db_conn'],$createQuery);
 					if(!mysqli_query($GLOBALS['db_conn'],$createQuery))
 					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break; 
@@ -224,7 +218,6 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 
 					if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
 						if(mysqli_num_rows($result)==0){
-							mysqli_query($GLOBALS['db_conn'],$insertQuery);
 							if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
 					  			printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 						}
@@ -239,14 +232,12 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 			switch ($localfilenameBIS) {
 				case $GLOBALS['external_data']['urlSTU']['localfilename']:
 					$structureQuery=$structureQuery."PRIMARY KEY (stu);";
-					mysqli_query($GLOBALS['db_conn'],$structureQuery);
 					if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
 					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break;
 
 				case $GLOBALS['external_data']['urlSTUORG']['localfilename']:
 					$structureQuery=$structureQuery."PRIMARY KEY (stu), ADD KEY smu (smu);";
-					mysqli_query($GLOBALS['db_conn'],$structureQuery);
 					if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
 					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break;
@@ -273,62 +264,64 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 						  Label_groupe varchar(37) DEFAULT NULL
 						) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 					mysqli_query($GLOBALS['db_conn'],$createQuery);
+
+					$structureQuery="ALTER TABLE $tableCSV
+		  				ADD UNIQUE KEY `Code` (`Code`)";
+		  			if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 				
 					foreach ($data as $row) {
-						if($row<>$data[0]&&$row<>end($data)){
-							$insertQuery="INSERT INTO $tableCSV (Code, Label, Code_Groupe, Label_groupe) VALUES (";
-							for($c=0;$c<4;$c++){
-								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],$row[$c]);
-								if($c==3){
-									$insertQuery=$insertQuery."'".$fieldValue."')";
-								}else{
-									$insertQuery=$insertQuery."'".$fieldValue."',";
-								}
-							}
-							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
-							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-								if(mysqli_num_rows($result)==0){
-									mysqli_query($GLOBALS['db_conn'],$insertQuery);
-									if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
-					  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
-								}
+						if($row==$data[0]) continue;
+						if($row==end($data)) continue;
+						$insertQuery="INSERT INTO $tableCSV (Code, Label, Code_Groupe, Label_groupe) VALUES (";
+						for($c=0;$c<4;$c++){
+							$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],utf8_encode($row[$c]));
+							if($c==3){
+								$insertQuery=$insertQuery."'".$fieldValue."')";
 							}else{
-								printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+								$insertQuery=$insertQuery."'".$fieldValue."',";
 							}
-						}	
+						}
+						$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
+						if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
+							if(mysqli_num_rows($result)==0){
+								if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
+				  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+							}
+						}else{
+							printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+						}
 					}
 				}
 
-				if($localfilenameBIS==$GLOBALS['external_data']['urlCodificationMainCrops']['localfilename']){
+				if($localfilenameBIS==$GLOBALS['external_data']['urlCodificationCatchCrops']['localfilename']){
 					foreach ($data as $row) {
-						if($row<>$data[0]&&$row<>end($data)){
-							$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
-							for($c=0;$c<2;$c++){
-								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],$row[$c]);
+						if($row==$data[0]) continue;
+						if($row==end($data)) continue;
+						$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
+						for($c=0;$c<4;$c++){
+							if($c<2){
+								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],utf8_encode($row[$c]));
 								$insertQuery=$insertQuery."'".$fieldValue."',";
-							}
-							$insertQuery=$insertQuery."null,null)";
-							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
-							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-								if(mysqli_num_rows($result)==0){
-									mysqli_query($GLOBALS['db_conn'],$insertQuery);
-									if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
-					  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
-								}
+							}elseif($c==2){
+								$insertQuery=$insertQuery."null,";
 							}else{
-								printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+								$insertQuery=$insertQuery."null)";
 							}
-						}
+						}						
+						$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
+						if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
+							if(mysqli_num_rows($result)==0){
+								if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
+				  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+							}
+						}else{
+							printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+						}					
 					}
 				}
 			  	fclose($h);
 			}
-
-			$structureQuery="ALTER TABLE $tableCSV
-  			ADD UNIQUE KEY `Code` (`Code`)";
-  			mysqli_query($GLOBALS['db_conn'],$structureQuery);
-  			if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
-					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 			break;
 
 		default:
