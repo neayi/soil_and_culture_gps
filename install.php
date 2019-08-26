@@ -189,10 +189,8 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					}
 
 					if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-						if(mysqli_num_rows($result)==0){
+						if(mysqli_num_rows($result)==0)
 							mysqli_query($GLOBALS['db_conn'],$insertQuery);
-						}
-
 					}
 				}
 			}
@@ -217,45 +215,49 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					mysqli_query($GLOBALS['db_conn'],$createQuery);
 				
 					foreach ($data as $row) {
-						$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
-						if($row<>$data[0]||$row<>end($data)){
+						if($row<>$data[0]&&$row<>end($data)){
+							$insertQuery="INSERT INTO $tableCSV (Code, Label, Code_Groupe, Label_groupe) VALUES (";
 							for($c=0;$c<4;$c++){
 								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],$row[$c]);
 								if($c==3){
-									$insertQuery=$insertQuery.$fieldValue.")";
+									$insertQuery=$insertQuery."'".$fieldValue."')";
 								}else{
-									$insertQuery=$insertQuery.$fieldValue.",";
+									$insertQuery=$insertQuery."'".$fieldValue."',";
 								}
 							}
-							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
+							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
+								if(mysqli_num_rows($result)==0)
+									mysqli_query($GLOBALS['db_conn'],$insertQuery);
+							}
 						}	
 					}
 				}
 
 				if($localfilenameBIS==$GLOBALS['external_data']['urlCodificationMainCrops']['localfilename']){
 					foreach ($data as $row) {
-						if($row<>$data[0]){
+						if($row<>$data[0]&&$row<>end($data)){
 							$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
 							for($c=0;$c<2;$c++){
 								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],$row[$c]);
-								$insertQuery=$insertQuery.$fieldValue.",";
+								$insertQuery=$insertQuery."'".$fieldValue."',";
 							}
 							$insertQuery=$insertQuery."null,null)";
-							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
+							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
+								if(mysqli_num_rows($result)==0)
+									mysqli_query($GLOBALS['db_conn'],$insertQuery);
+							}
 						}
 					}
 				}
-
 			  	fclose($h);
 			}
-
 			break;
 
 		default:
 			break;
 	}
-
-
 }
 
 
