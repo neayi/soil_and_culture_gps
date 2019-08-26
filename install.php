@@ -64,9 +64,39 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 			echo "Please unzip the zip files in the temp directory\n";
 			while((!(is_dir($filename))));
 
+			$dir_handle = opendir($filename); 
+			$shapefile="";
+			if(is_resource($dir_handle)){  
+			     while(($file = readdir($dir_handle)) == true) { 
+			     	if(substr($file,-3)=="shp") 
+			    		$shapefile=$filename."/".$file; 
+			    }
+			    closedir($dir_handle); 
+			}
+
 			echo "Loading $tablename to the database...\n";
-			//
-			//
+			
+			if(is_dir($GLOBALS['ogr2ogrpass'])){
+				exec($GLOBALS['ogr2ogrpass']."\ogr2ogr -f MySQL MySQL:$database,host=$dbHost,user=$dbUser,password= $shapefile -nln $tablename -update -overwrite -lco engine=MYISAM");
+				if($localfilenameBIS==$GLOBALS['external_data']['urlSoilsShpFile']['localfilename']){
+					$structureQuery="ALTER TABLE $tablename
+					  ADD PRIMARY KEY (soil_id),
+					  ADD KEY smu (smu);";
+					  mysqli_query($GLOBALS['db_conn'],$structureQuery);
+					  if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+
+				}
+				//elseif($localfilenameBIS==$GLOBALS['external_data']['urlRPG2017']['localfilename']){
+				//	$structureQuery="ALTER TABLE $tablename 
+						//ADD PRIMARY KEY (id_parcel), ADD SPATIAL KEY SHAPE (SHAPE);";
+					//mysqli_query($GLOBALS['db_conn'],$structureQuery);
+					//if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
+					//		printf("Error: %s\n", mysqli_error($link));
+				//}
+
+			}else
+				echo "Please download OSGeo4W and configure the right path to access the folder of ogr2ogr.exe in config.php \n";
 			break;
 
 		case 'tab':
@@ -83,6 +113,8 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					  area varchar(10) DEFAULT NULL
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 					mysqli_query($GLOBALS['db_conn'],$createQuery);
+					if(!mysqli_query($GLOBALS['db_conn'],$createQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break;
 				case $GLOBALS['external_data']['urlSTU']['localfilename']:
 					$createQuery="CREATE TABLE IF NOT EXISTS $tablename (
@@ -116,6 +148,8 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					  cfl varchar(1) DEFAULT NULL
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 					mysqli_query($GLOBALS['db_conn'],$createQuery);
+					if(!mysqli_query($GLOBALS['db_conn'],$createQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break;
 				case $GLOBALS['external_data']['urlSTUORG']['localfilename']:
 					$createQuery="CREATE TABLE stuorg (
@@ -124,11 +158,11 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					  pcarea int(3) DEFAULT NULL
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 					mysqli_query($GLOBALS['db_conn'],$createQuery);
+					if(!mysqli_query($GLOBALS['db_conn'],$createQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					break; 
 				default:
-					echo "Ne rentre pas dans le switch...\n";
 					break;
-
 			}
 			
 			// Insert the values into the table
@@ -189,11 +223,37 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					}
 
 					if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-						if(mysqli_num_rows($result)==0)
+						if(mysqli_num_rows($result)==0){
 							mysqli_query($GLOBALS['db_conn'],$insertQuery);
+							if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
+					  			printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+						}
+					}else{
+						printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 					}
 				}
-			}
+			}	
+
+			$structureQuery="ALTER TABLE $tablename
+								ADD ";
+			switch ($localfilenameBIS) {
+				case $GLOBALS['external_data']['urlSTU']['localfilename']:
+					$structureQuery=$structureQuery."PRIMARY KEY (stu);";
+					mysqli_query($GLOBALS['db_conn'],$structureQuery);
+					if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+					break;
+
+				case $GLOBALS['external_data']['urlSTUORG']['localfilename']:
+					$structureQuery=$structureQuery."PRIMARY KEY (stu), ADD KEY smu (smu);";
+					mysqli_query($GLOBALS['db_conn'],$structureQuery);
+					if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+					break;
+				
+				default:
+					break;
+			}			
 			break;
 
 		case 'csv':
@@ -227,8 +287,13 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 							}
 							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
 							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-								if(mysqli_num_rows($result)==0)
+								if(mysqli_num_rows($result)==0){
 									mysqli_query($GLOBALS['db_conn'],$insertQuery);
+									if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
+					  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+								}
+							}else{
+								printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 							}
 						}	
 					}
@@ -245,29 +310,28 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 							$insertQuery=$insertQuery."null,null)";
 							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
 							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-								if(mysqli_num_rows($result)==0)
+								if(mysqli_num_rows($result)==0){
 									mysqli_query($GLOBALS['db_conn'],$insertQuery);
+									if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
+					  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+								}
+							}else{
+								printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 							}
 						}
 					}
 				}
 			  	fclose($h);
 			}
+
+			$structureQuery="ALTER TABLE $tableCSV
+  			ADD UNIQUE KEY `Code` (`Code`)";
+  			mysqli_query($GLOBALS['db_conn'],$structureQuery);
+  			if(!mysqli_query($GLOBALS['db_conn'],$structureQuery))
+					  	printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 			break;
 
 		default:
 			break;
 	}
 }
-
-
-
-
-
-
-//fonction unzip
-// https://www.php.net/manual/fr/ref.zip.php
-// https://stackoverflow.com/questions/8889025/unzip-a-file-with-php
-
-
-
