@@ -1,11 +1,6 @@
 <?php
 include 'config.php';
 
-include("proj4php-master/vendor/autoload.php");
-use proj4php\Proj4php;
-use proj4php\Proj;
-use proj4php\Point;
-
 // First lets create a connection to the DB:
 $GLOBALS['db'] = new mysqli($dbHost, $dbUser, $dbPassword, $database); 
 
@@ -35,7 +30,7 @@ if (isset($argc)) {
 
 		case 'PC':
 			echo $argv[1]." : " . $argv[2]."\n";
-			$cp=$argv[2];
+			$pc=$argv[2];
 			//recuperer les coordonnees GPS depuis un code postal
 			getInfoFromPostalCode($pc);
 			break;
@@ -90,9 +85,11 @@ function getInfoFromGPSCoord($long,$lat)
 
 	echo "Execution de la 1e requete...\n";
 	//recuperer resultat requete SQL
+	$rpg=$GLOBALS['external_data']['urlRPG2017']['tablename'];
+	$cultures=$GLOBALS['CSVtables'];
 	$sql= "SELECT DISTINCT code_cultu, label, label_groupe
-			FROM rpg2017
-			INNER JOIN cultures ON rpg2017.code_cultu=cultures.code
+			FROM $rpg
+			INNER JOIN $cultures ON rpg2017.code_cultu=cultures.code
 			WHERE ST_DISTANCE(ST_GeomFromText('POINT($longL93 $latL93)',2154),SHAPE)<=$L93_10km
 			ORDER BY ST_DISTANCE(ST_GeomFromText('POINT($longL93 $latL93)',2154),SHAPE) ASC";
 	echo $sql . "\n";
@@ -107,10 +104,13 @@ function getInfoFromGPSCoord($long,$lat)
 
 	echo "Execution de la 2e requete...\n";
 	//Pour que le resultat sur le terminal soit plus lisible, demandez plutot stu.soil
+	$stu=$GLOBALS['external_data']['urlSTU']['tablename'];
+	$stuorg=$GLOBALS['external_data']['urlSTUORG']['tablename'];
+	$soilsTable=$GLOBALS['external_data']['urlSoilsShpFile']['tablename'];
 	$sql="SELECT stu.soil, stu.stu, soil.smu, stuorg.pcarea,soil_description.soil 
-			FROM stu
-			INNER JOIN stuorg ON stu.stu = stuorg.stu
-			INNER JOIN soil ON soil.smu = stuorg.smu 
+			FROM $stu
+			INNER JOIN $stuorg ON stu.stu = stuorg.stu
+			INNER JOIN $soilsTable ON soil.smu = stuorg.smu 
 			INNER JOIN soil_description on soil_description.soil85=stu.soil
 			WHERE ST_DISTANCE(ST_GeomFromText('POINT($longL93 $latL93)',2154),SHAPE)<=$L93_10km";
 			// OR soil_description.soil90=stu.soil90
@@ -135,23 +135,31 @@ function getInfoFromIPAddress($ip)
 {
 	$info = "";
 
-    // ipInfo Access Token (Alice)
-	$TOKEN = '64a05c25e31c0a'; // CHANGER
+  	$TOKEN=$GLOBALS['TOKEN_IP'];
+  	$urltoken=$GLOBALS['urlTOKEN'];
 
-	// ex: write this url on google http://ipinfo.io/81.185.166.135/geo?token=64a05c25e31c0a
-	$json  = file_get_contents("http://ipinfo.io/$ip/geo?token=$TOKEN");
-	$json  = json_decode($json, true);
+  	if($TOKEN==''){
+  		echo "Please enter a valid token in config.php to get cultures and soil information from an IP address.\n";
+  		echo "You can get a token from this website : $urltoken . \n";
+  	}else{
+		$json  = file_get_contents("http://ipinfo.io/$ip/geo?token=$TOKEN");
+		$json  = json_decode($json, true);
 
-	// "loc": "43.6043,1.4437",
-	$gps = $json['loc'];	
+		// "loc": "43.6043,1.4437",
+		if(array_key_exists('loc', $json)){
+			$gps = $json['loc'];	
 
-	// We want to return the GPS in the format '1.4437 43.6043'
-	list($long, $lat) = array_reverse(explode(',', $gps));
-	echo "lg : $long\n";
-	echo "lt : $lat\n";	
+			// We want to return the GPS in the format '1.4437 43.6043'
+			list($long, $lat) = array_reverse(explode(',', $gps));
+			echo "lg : $long\n";
+			echo "lt : $lat\n";	
 
-	$info = getInfoFromGPSCoord($long, $lat);
-	return $info;
+			$info = getInfoFromGPSCoord($long, $lat);
+		}else{
+			echo "This IP address does not correspond to any location. Please choose a different IP.\n";
+		}
+  	}
+  	return $info;	
 }
 
 function getInfoFromPostalCode($pc)
