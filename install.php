@@ -275,14 +275,15 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 						if($row==end($data)) continue;
 						$insertQuery="INSERT INTO $tableCSV (Code, Label, Code_Groupe, Label_groupe) VALUES (";
 						for($c=0;$c<4;$c++){
-							$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],utf8_encode($row[$c]));
+							$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],iconv("Windows-1252","UTF-8",$row[$c]));
 							if($c==3){
-								$insertQuery=$insertQuery."'".$fieldValue."')";
+								$insertQuery=$insertQuery."\"$fieldValue\")";
 							}else{
-								$insertQuery=$insertQuery."'".$fieldValue."',";
+								$insertQuery=$insertQuery."\"$fieldValue\",";
 							}
 						}
-						$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
+						echo "$insertQuery\n";
+						$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = \"$row[0]\"";
 						if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
 							if(mysqli_num_rows($result)==0){
 								if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
@@ -296,27 +297,28 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 
 				if($localfilenameBIS==$GLOBALS['external_data']['urlCodificationCatchCrops']['localfilename']){
 					foreach ($data as $row) {
-						if($row==$data[0]) continue;
-						if($row==end($data)) continue;
-						$insertQuery="INSERT INTO $tableCSV(Code,Label,Code_Groupe,Label_groupe) VALUES (";
-						for($c=0;$c<4;$c++){
-							if($c<2){
-								$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],utf8_encode($row[$c]));
-								$insertQuery=$insertQuery."'".$fieldValue."',";
-							}elseif($c==2){
-								$insertQuery=$insertQuery."null,";
+						if($row[0]<>$data[0][0]){
+							if($row==end($data)) continue;
+							$insertQuery="INSERT INTO $tableCSV(Code, Label, Code_Groupe, Label_groupe) VALUES (";
+							for($c=0;$c<4;$c++){
+								if($c<2){
+									$fieldValue=mysqli_real_escape_string($GLOBALS['db_conn'],iconv("Windows-1252","UTF-8",$row[$c]));
+									$insertQuery=$insertQuery."\"$fieldValue\",";
+								}elseif($c==2){
+									$insertQuery=$insertQuery."null,";
+								}else{
+									$insertQuery=$insertQuery."null)";
+								}
+							}
+							$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = \"$row[0]\"";
+							if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
+								if(mysqli_num_rows($result)==0){
+									if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
+					  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
+								}
 							}else{
-								$insertQuery=$insertQuery."null)";
+								printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 							}
-						}						
-						$checkExistsQuery="SELECT * FROM $tableCSV WHERE Code = '".$row[0]."'";
-						if($result=mysqli_query($GLOBALS['db_conn'],$checkExistsQuery)){
-							if(mysqli_num_rows($result)==0){
-								if(!mysqli_query($GLOBALS['db_conn'],$insertQuery))
-				  					printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
-							}
-						}else{
-							printf("Error: %s\n", mysqli_error($GLOBALS['db_conn']));
 						}					
 					}
 				}
