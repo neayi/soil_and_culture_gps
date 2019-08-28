@@ -46,7 +46,7 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 	if(!file_exists($localfilename)){
 		try{
 			if(!copy($externaldata['url'], $localfilename)){
-				$message=$externaldata['errorMessage']
+				$message=$externaldata['errorMessage'];
 				throw new Exception($message);
 			}
 		}catch(Exception $e){
@@ -66,12 +66,12 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 					echo "Please unzip the zip files in the temp directory\n";
 				while((!(is_dir($filename))));
 				if($localfilenameBIS==$GLOBALS['external_data']['urlSoilsShpFile']['localfilename']){
-					while(!file_exists($filename."/30169_L93.shp"));
+					while(!file_exists($filename."/30169_L93.shx"));
 					$shapefile=$filename."/30169_L93.shp";
 					
 				}elseif($localfilenameBIS==$GLOBALS['external_data']['urlRPG2017']['localfilename']){
-					while(!(file_exists($filename."/RPG_2-0__SHP_LAMB93_FR-2017_2017-01-01/RPG/1_DONNEES_LIVRAISON_2017/RPG_2-0_SHP_LAMB93_FR-2017/PARCELLES_GRAPHIQUES.shp")));
 					$shapefile=$filename."/RPG_2-0__SHP_LAMB93_FR-2017_2017-01-01/RPG/1_DONNEES_LIVRAISON_2017/RPG_2-0_SHP_LAMB93_FR-2017/PARCELLES_GRAPHIQUES.shp";
+					while(!(file_exists($filename."/RPG_2-0__SHP_LAMB93_FR-2017_2017-01-01/RPG/1_DONNEES_LIVRAISON_2017/RPG_2-0_SHP_LAMB93_FR-2017/PARCELLES_GRAPHIQUES.shx")));
 				}else{
 					echo "Error : no shapefile found...\n";
 				}
