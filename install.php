@@ -1,13 +1,9 @@
 <?php
 include 'config.php';
 
-// To run the project : cd c:\xampp\htdocs\soil_and_culture_gps 
-// -------------------- c:\xampp\php\php.exe install.php
-
 // Create a working directory temp if it doesn't already exist
-if(!(is_dir(__DIR__.'/temp'))){
+if(!(is_dir(__DIR__.'/temp')))
 	mkdir(__DIR__.'/temp');
-}
 
 // First lets create a DB:
 $GLOBALS['db_conn'] = new mysqli($dbHost, $dbUser, $dbPassword); 
@@ -26,7 +22,6 @@ if(!(mysqli_select_db($GLOBALS['db_conn'],$database))){
 	}
 }
 $GLOBALS['db_conn'] = new mysqli($dbHost, $dbUser, $dbPassword, $database); 
-
 
 // Set some DB parameters
 if (!$GLOBALS['db_conn']->set_charset("utf8")) 
@@ -51,9 +46,8 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 	if(!file_exists($localfilename)){
 		try{
 			if(!copy($externaldata['url'], $localfilename)){
-				if($localfilenameBIS==$GLOBALS['external_data']['urlSoilsShpFile']['localfilename']){
-					throw new Exception('The file could not be downloaded. Please go on https://data.inra.fr/dataset.xhtml?persistentId=doi:10.15454/BPN57S and download 30169_L93.zip and the following files as .tab : smu.tab, stu.tab, stuorg.tab.');
-				}
+				$message=$externaldata['errorMessage']
+				throw new Exception($message);
 			}
 		}catch(Exception $e){
 			echo "An exception occured : ". $e->getMessage()."\n";
@@ -338,6 +332,9 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 			break;
 	}
 }
+
+echo "Loading of the soil_description table (created thanks to the attricod.txt file available on https://data.inra.fr/dataset.xhtml?persistentId=doi:10.15454/BPN57S) ... \n";
+//to download attricod.txt : https://data.inra.fr/api/access/datafile/8791?gbrecs=true
 
 $createSoilDescri="CREATE TABLE IF NOT EXISTS soil_description (
   soil85 varchar(4) DEFAULT NULL,
