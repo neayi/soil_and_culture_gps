@@ -48,8 +48,17 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 	echo "Downloading " . $externaldata['url'] . " to $localfilename\n";
 	if(strpos($localfilename,"rpg")||strpos($localfilename,"RPG"))
 		echo "This file might take a while to download...\n";
-	if(!file_exists($localfilename))
-		copy($externaldata['url'], $localfilename);
+	if(!file_exists($localfilename)){
+		try{
+			if(!copy($externaldata['url'], $localfilename)){
+				if($localfilenameBIS==$GLOBALS['external_data']['urlSoilsShpFile']['localfilename']){
+					throw new Exception('The file could not be downloaded. Please go on https://data.inra.fr/dataset.xhtml?persistentId=doi:10.15454/BPN57S and download 30169_L93.zip and the following files as .tab : smu.tab, stu.tab, stuorg.tab.');
+				}
+			}
+		}catch(Exception $e){
+			echo "An exception occured : ". $e->getMessage()."\n";
+		}
+	}
 
 	// Create the tables in the database
 	
@@ -59,8 +68,8 @@ foreach ($GLOBALS['external_data'] as $externaldata)
 	switch ($format) {
 		case 'zip':
 			if(!(mysqli_query($GLOBALS['db_conn'],"SELECT 1 FROM $tablename LIMIT 1"))){
-
-				echo "Please unzip the zip files in the temp directory\n";
+				if(file_exists($localfilename))
+					echo "Please unzip the zip files in the temp directory\n";
 				while((!(is_dir($filename))));
 				if($localfilenameBIS==$GLOBALS['external_data']['urlSoilsShpFile']['localfilename']){
 					while(!file_exists($filename."/30169_L93.shp"));
