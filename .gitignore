@@ -1,0 +1,13 @@
+
+*.csv
+*.zip
+*.md5
+*.cpg
+*.dbf
+*.prj
+*.shp
+*.shx
+*.tab
+*.sbn
+*.sbx
+*.xml

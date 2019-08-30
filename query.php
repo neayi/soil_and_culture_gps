@@ -19,31 +19,38 @@ mb_internal_encoding("UTF-8");
 
 // Analysing the command line
 if (isset($argc)) {
-	$parameter_type=$argv[1];
-	switch ($parameter_type) {
-		case 'GPS':
-			echo $argv[1]." : " . $argv[2]." ". $argv[3]."\n";
-			$long=$argv[2];
-			$lat=$argv[3];	
-			getInfoFromGPSCoord($long,$lat);
-			break;
+	if($argc>1){
+		$parameter_type=$argv[1];
+		switch ($parameter_type) {
+			case 'GPS':
+				echo $argv[1]." : " . $argv[2]." ". $argv[3]."\n";
+				$long=$argv[2];
+				$lat=$argv[3];	
+				getInfoFromGPSCoord($long,$lat);
+				break;
 
-		case 'PC':
-			echo $argv[1]." : " . $argv[2]."\n";
-			$pc=$argv[2];
-			//recuperer les coordonnees GPS depuis un code postal
-			getInfoFromPostalCode($pc);
-			break;
+			case 'PC':
+				echo $argv[1]." : " . $argv[2]."\n";
+				$pc=$argv[2];
+				//recuperer les coordonnees GPS depuis un code postal
+				getInfoFromPostalCode($pc);
+				break;
 
-		case 'IP':
-			echo $argv[1]." : " . $argv[2]."\n";
-			$ip=$argv[2]; //recuperer IP depuis appareil ?
-			//recuperer les coordonnees GPS depuis adresse IP
-			getInfoFromIPAddress($ip);		
-			break;
-		
-		default:
-			break;
+			case 'IP':
+				echo $argv[1]." : " . $argv[2]."\n";
+				$ip=$argv[2]; //recuperer IP depuis appareil ?
+				//recuperer les coordonnees GPS depuis adresse IP
+				getInfoFromIPAddress($ip);		
+				break;
+			
+			default:
+				break;
+		}
+	}else{
+		echo "Please write parameters in the execution line following one of these examples: \n";
+		echo "--according to GPS coordinates: \nquery.php GPS 0.4 49.0\n";
+		echo "--according to a postal code: \nquery.php PC 06400\n";
+		echo "--according to an IP address: \nquery.php IP IPaddress\n";
 	}
 }
 else {
